@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        body {
+            margin: 0px 610px; 
+            text-align: center;
+            font-family: fantasy;
+        }
+        .card {
+            width: 130px;
+            height: 180px;
+            position: relative;
+            /* 設置子元素在3D空間中 */
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+            float: left;
+            margin: 10px ;   
+        }
+
+        .front{
+            width: 100%;
+            height: 100%;
+            background-image: url("card/Red_back.jpg");
+            background-position: center;
+            background-size: cover;
+            box-shadow: 5px 5px 10px 0 rgba(255, 255, 255, 0.5);
+        }
+
+        .back{
+            width: 100%;
+            height: 100%;
+            background-position: center;
+            background-size: 100% 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            transform: rotateY(180deg);
+        }
+        .open {
+            transform: rotateY(180deg);
+        }
+
+        #main {
+            width: 630px;
+            height: 800px;
+            padding: 20px 20px 20px 50px;
+            background-image: linear-gradient(to top left,#ff8a00,#da1b60);
+            box-shadow: 12px 15px 20px 0 rgba(46, 61, 73, 0.5);
+            border-radius: 20px;
+        }
+        #start{
+            margin: 15px 0px 0px 0px;
+            font-size: 18px;
+            width:100px;
+            height:30px;
+            background-color: #ffffff
+        }
+    </style>
+</head>
+<body>
+    <input type="button" value="開始遊戲" id="start">
+    <p>獲得分數：<span id="score">0</span></p>
+    <div id="main"></div>
+    <script src="./jquery-3.4.1.min.js"></script>
+    <script>
+        $(function(){
+            let score = 0;
+
+            for(let i=0;i<16;i++){
+                $("#main").append(/*html*/`
+                <div class="card">
+                    <div class="front"></div>
+                    <div class="back"></div>
+                </div>`);
+            }
+
+            randomCard();
+
+            function randomCard(){
+                for(let i=0; i<$(".card").length; i++){
+                    /*
+                        每張牌要有兩個才能配對消除
+                        所以有 16/2=8種 牌
+                        以 i/8 的餘數判斷要哪張牌
+                        因為牌從1開始，i從0開始，所以要加1
+                    */
+                    let add = i % ( $(".card").length/2 ) + 1;
+                    $(".card").eq(i).find(".back").css("background-image", `url("./card/${add}S.jpg")`);
+                    $(".card").eq(i).attr("data-card", add);  //我將1到8的數字寫字data-card這個屬性
+
+                    // 取隨機數字 1-16
+                    let target = Math.floor( Math.random()* $(".card").length );
+                    // 把第幾個隨機數字的卡片移動到目前i後面   //隨機取的1-16數字放到迴圈eq(i)之後
+                    $(".card").eq(target).insertAfter( $(".card").eq(i) );  
+                }
+            }
+
+            $(".card").on("click", function(){
+                // 如果翻開的牌小於兩張，且這張還沒翻開
+                if($(".open").length < 2 && !$(this).hasClass("open")){  // 0 or 1  // 檢查(this點的這張牌)是否有open這個class
+                    console.log("open");
+                    $(this).addClass("open");
+                }
+
+                // 如果翻了兩張牌
+                if($(".open").length == 2){
+                    console.log(2);
+                    setTimeout(close, 1000);
+                    // 兩張一樣的話，淡出動畫
+                    if($(".open").eq(0).attr("data-card") == $(".open").eq(1).attr("data-card")){
+                        score++;
+                        $(".open").fadeTo(1000, 0).addClass("clear");
+                        $("#score").text(score);
+                    }
+                }
+
+                if($(".clear").length == $(".card").length){
+                    setTimeout(function(){alert("恭喜")}, 1000);
+
+                    // 重設
+                    setTimeout(function(){
+                        randomCard();
+                        $(".clear").removeClass("clear");
+                        $(".card").css("opacity", "1.0");
+                    }, 1500);
+                }
+            })
+
+            function close(){   //兩張圖片不一樣時，就清除 class的那個open
+                $(".open").removeClass("open");
+            }
+            
+        })
+        
+    </script>
+</body>
+</html>
